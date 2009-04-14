@@ -1,0 +1,18 @@
+HTTPStub
+========
+
+HTTPStub is a very simple HTTP server for use in automated integration tests. For example if you're relying on an ActiveResource in your Rails application and you want to use a live integration framework this will make it easier to run the tests in a continuous integration setup.
+
+Example
+-------
+
+The following will stub out a success response for Person.create. (Note that you need to declare which ports to listen on beforehand):
+HTTPStub.listen_on(3001)
+HTTPStub.post "http://localhost:3001/people/", { :status => 201, :location => "http://localhost:3001/people/1.xml" }, <<-EOF
+  <?xml version="1.0" encoding="UTF-8"?>
+  <person>
+    <id>1</id>
+    <name>Joe Doe</name>
+  </person>
+EOF
+
