@@ -54,7 +54,12 @@ class HTTPStub
   def self.stub(method, url, metadata, body)
     parsed_url = URI.parse(url)
     server = initialize_server parsed_url.port
-    server.servlet.send("stub_#{method}", "#{parsed_url.path}?#{parsed_url.query}", metadata, body)
+    path = if parsed_url.query.nil? or parsed_url.query == ""
+             parsed_url.path
+           else
+             "#{parsed_url.path}?#{parsed_url.query}"
+           end
+    server.servlet.send("stub_#{method}", path, metadata, body)
   end
 
 end

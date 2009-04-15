@@ -46,9 +46,11 @@ describe HTTPStub do
 
 
   it "should stub GET request" do
+    HTTPStub.get "http://localhost:3000/port_number", { :content_type => "text/plain" }, "port_number"
     HTTPStub.get "http://localhost:3000/port_number?query_port", { :content_type => "text/plain" }, "port"
     HTTPStub.get "http://localhost:3000/port_number?query_host", { :content_type => "text/plain" }, "host"
     timeout(1) do
+      Net::HTTP.get_response(URI.parse("http://localhost:3000/port_number")).body.should == "port_number"
       Net::HTTP.get_response(URI.parse("http://localhost:3000/port_number?query_port")).body.should == "port"
       Net::HTTP.get_response(URI.parse("http://localhost:3000/port_number?query_host")).body.should == "host"
     end
