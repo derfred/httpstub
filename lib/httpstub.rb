@@ -9,12 +9,14 @@ class HTTPStub
   @@thread = nil
 
   def self.listen_on(ports)
-    @@root_server = WEBrick::HTTPServer.new :Port => 10000, :DoNotListen => true
-    [ports].flatten.each do |port|
-      @@root_server.virtual_host HTTPStubServer.new(port)
-      @@root_server.listen "0.0.0.0", port
+    unless @@root_server
+      @@root_server = WEBrick::HTTPServer.new :Port => 10000, :DoNotListen => true
+      [ports].flatten.each do |port|
+        @@root_server.virtual_host HTTPStubServer.new(port)
+        @@root_server.listen "0.0.0.0", port
+      end
+      @@thread = Thread.new(@@root_server) { |server| server.start }
     end
-    @@thread = Thread.new(@@root_server) { |server| server.start }
   end
 
   def self.initialize_server(port)

@@ -40,6 +40,10 @@ describe HTTPStub do
     end
   end
 
+  it "should allow calling listen_on multiple times" do
+    HTTPStub.listen_on([3000, 3001])
+  end
+
 
   it "should stub GET request" do
     HTTPStub.get "http://localhost:3000/port_number?query_port", { :content_type => "text/plain" }, "port"
