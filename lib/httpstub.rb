@@ -9,6 +9,8 @@ class HTTPStub
   @@thread = nil
 
   def self.listen_on(ports)
+    stop_server
+
     unless @@root_server
       @@root_server = WEBrick::HTTPServer.new :Port => 10000, :DoNotListen => true
       [ports].flatten.each do |port|
