@@ -5,7 +5,9 @@ class HTTPStubServer < WEBrick::HTTPServer
   attr_reader :servlet
 
   def initialize(port)
-    super :Port => port, :DoNotListen => true, :BindAddress => nil, :ServerName => nil, :ServerAlias => nil
+    options = { :Port => port, :DoNotListen => true, :BindAddress => nil, :ServerName => nil, :ServerAlias => nil }
+    options.merge!(:AccessLog => []) if HTTPStub.disable_logging?
+    super options
     @servlet = HTTPStubServlet.get_instance self, port
   end
 

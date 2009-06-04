@@ -7,6 +7,16 @@ class HTTPStub
 
   @@root_server = nil
   @@thread = nil
+  @@disable_logging = true
+
+  def self.disable_logging=(value)
+    @@disable_logging = value
+  end
+
+  def self.disable_logging?
+    @@disable_logging
+  end
+
 
   def self.listen_on(ports)
     stop_server
