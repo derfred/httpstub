@@ -4,7 +4,7 @@ require File.expand_path(File.dirname(__FILE__) + "/../lib/httpstub")
 describe HTTPStub do
 
   before :each do
-    HTTPStub.listen_on([3000, 3001])
+    HTTPStub.listen_on(["http://localhost:3000/", "http://localhost:3001/"])
   end
 
   after :each do
@@ -41,7 +41,7 @@ describe HTTPStub do
   end
 
   it "should allow calling listen_on multiple times" do
-    HTTPStub.listen_on([3000, 3001])
+    HTTPStub.listen_on(["http://localhost:3000/", "http://localhost:3001/"])
   end
 
 

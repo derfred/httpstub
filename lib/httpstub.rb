@@ -18,14 +18,15 @@ class HTTPStub
   end
 
 
-  def self.listen_on(ports)
+  def self.listen_on(urls)
     stop_server
 
     unless @@root_server
       @@root_server = WEBrick::HTTPServer.new :Port => 10000, :DoNotListen => true
-      [ports].flatten.each do |port|
-        @@root_server.virtual_host HTTPStubServer.new(port)
-        @@root_server.listen "0.0.0.0", port
+      [urls].flatten.each do |url|
+        uri = URI.parse(url)
+        @@root_server.virtual_host HTTPStubServer.new(uri.port)
+        @@root_server.listen "0.0.0.0", uri.port
       end
       @@thread = Thread.new(@@root_server) { |server| server.start }
     end
