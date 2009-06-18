@@ -22,7 +22,9 @@ class HTTPStub
     stop_server
 
     unless @@root_server
-      @@root_server = WEBrick::HTTPServer.new :Port => 10000, :DoNotListen => true
+      options = {:Port => 10000, :DoNotListen => true}
+      options.merge!(:AccessLog => [], :Logger => WEBrick::BasicLog.new([])) if disable_logging?
+      @@root_server = WEBrick::HTTPServer.new options
       [urls].flatten.each do |url|
         uri = URI.parse(url)
         @@root_server.virtual_host HTTPStubServer.new(uri.port)
