@@ -1,12 +1,13 @@
 require 'webrick'
+require 'webrick/https'
 require File.expand_path(File.dirname(__FILE__) + "/webrick_monkey_patch")
 require File.expand_path(File.dirname(__FILE__) + "/httpstubservlet")
 require File.expand_path(File.dirname(__FILE__) + "/httpstubserver")
 
 class HTTPStub
 
-  @@root_server = nil
-  @@thread = nil
+  @@server_list = {}
+  @@thread_group = nil
   @@disable_logging = true
 
   def self.disable_logging=(value)
@@ -21,30 +22,35 @@ class HTTPStub
   def self.listen_on(urls)
     stop_server
 
-    unless @@root_server
-      options = {:Port => 10000, :DoNotListen => true}
-      options.merge!(:AccessLog => [], :Logger => WEBrick::BasicLog.new([])) if disable_logging?
-      @@root_server = WEBrick::HTTPServer.new options
+    unless @@thread_group
+      @@thread_group = ThreadGroup.new
       [urls].flatten.each do |url|
-        uri = URI.parse(url)
-        @@root_server.virtual_host HTTPStubServer.new(uri.port)
-        @@root_server.listen "0.0.0.0", uri.port
+        @@thread_group.add build_server(url)
       end
-      @@thread = Thread.new(@@root_server) { |server| server.start }
     end
   end
 
-  def self.initialize_server(port)
-    @@root_server.server_for_port(port)
+  def self.build_server(url)
+    uri = URI.parse(url)
+    server = HTTPStubServer.new(uri.port, uri.scheme == "https")
+    @@server_list[uri.port] = server
+
+    Thread.start do
+      #server.listen "0.0.0.0", uri.port
+      server.start
+    end
   end
 
   def self.stop_server
-    if @@thread
-      @@root_server.virtual_hosts.each { |h| h.servlet.clear_responses }
-      @@root_server.shutdown
-      @@thread.join
-      @@thread = nil
-      @@root_server = nil
+    if @@thread_group
+      @@server_list.values.each do |server|
+        server.servlet.clear_responses
+        server.shutdown
+      end
+
+      @@thread_group.list.each { |th| th.join }
+      @@thread_group = nil
+      @@server_list.clear
     end
   end
 
@@ -68,7 +74,7 @@ class HTTPStub
 
   def self.stub(method, url, metadata, body)
     parsed_url = URI.parse(url)
-    server = initialize_server parsed_url.port
+    server = @@server_list[parsed_url.port]
     path = if parsed_url.query.nil? or parsed_url.query == ""
              parsed_url.path
            else

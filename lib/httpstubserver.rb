@@ -4,9 +4,10 @@ class HTTPStubServer < WEBrick::HTTPServer
 
   attr_reader :servlet
 
-  def initialize(port)
-    options = { :Port => port, :DoNotListen => true, :BindAddress => nil, :ServerName => nil, :ServerAlias => nil }
+  def initialize(port, use_ssl)
+    options = { :Port => port, :BindAddress => nil, :ServerName => nil, :ServerAlias => nil }
     options.merge!(:AccessLog => [], :Logger => WEBrick::BasicLog.new([])) if HTTPStub.disable_logging?
+    options.merge!(ssl_options) if use_ssl
     super options
     @servlet = HTTPStubServlet.get_instance self, port
   end
@@ -14,5 +15,14 @@ class HTTPStubServer < WEBrick::HTTPServer
   def service(req, res)
     @servlet.service(req, res)
   end
+
+  private
+    def ssl_options
+      {
+        :SSLEnable       => true,
+        :SSLVerifyClient => OpenSSL::SSL::VERIFY_NONE,
+        :SSLCertName     => [ [ "CN", "localhost" ] ]
+      }
+    end
 
 end
