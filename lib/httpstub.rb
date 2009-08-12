@@ -20,7 +20,7 @@ class HTTPStub
 
 
   def self.listen_on(urls)
-    stop_server
+    clear_responses if @@thread_group
 
     unless @@thread_group
       @@thread_group = ThreadGroup.new
@@ -50,6 +50,12 @@ class HTTPStub
       @@thread_group.list.each { |th| th.join }
       @@thread_group = nil
       @@server_list.clear
+    end
+  end
+
+  def self.clear_responses
+    @@server_list.values.each do |server|
+      server.servlet.clear_responses
     end
   end
 
