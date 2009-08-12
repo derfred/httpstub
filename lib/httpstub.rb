@@ -36,7 +36,6 @@ class HTTPStub
     @@server_list[uri.port] = server
 
     Thread.start do
-      #server.listen "0.0.0.0", uri.port
       server.start
     end
   end
